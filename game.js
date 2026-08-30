@@ -39,8 +39,16 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const playerNameInput = document.getElementById('player-name');
+const showScoresBtn = document.getElementById('show-scores-btn');
+const scoresOverlay = document.getElementById('scores-overlay');
+const scoresBody = document.getElementById('scores-body');
+const resetScoresBtn = document.getElementById('reset-scores-btn');
+const closeScoresBtn = document.getElementById('close-scores-btn');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let comboStreak = 0;
+let maxCombo = 0;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -110,6 +118,7 @@ function clearLines() {
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
     updateHUD();
   }
+  return cleared;
 }
 
 function ghostY() {
@@ -137,7 +146,13 @@ function softDrop() {
 
 function lockPiece() {
   merge();
-  clearLines();
+  const cleared = clearLines();
+  if (cleared > 0) {
+    comboStreak++;
+    maxCombo = Math.max(maxCombo, comboStreak);
+  } else {
+    comboStreak = 0;
+  }
   spawn();
 }
 
@@ -218,11 +233,42 @@ function drawNext() {
       drawBlock(nextCtx, offX + c, offY + r, shape[r][c], NB);
 }
 
+function saveScore(name, sc, ln, mc) {
+  const scores = JSON.parse(localStorage.getItem('tetris-scores') || '[]');
+  scores.push({ name: name || 'Anónimo', score: sc, lines: ln, maxCombo: mc, date: new Date().toLocaleDateString() });
+  scores.sort((a, b) => b.score - a.score);
+  scores.splice(5);
+  localStorage.setItem('tetris-scores', JSON.stringify(scores));
+}
+
+function renderScores(highlightScore) {
+  const scores = JSON.parse(localStorage.getItem('tetris-scores') || '[]');
+  scoresBody.innerHTML = '';
+  if (scores.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="5" style="text-align:center;color:#555570">Sin registros</td>';
+    scoresBody.appendChild(tr);
+    return;
+  }
+  let highlighted = false;
+  scores.forEach((entry, i) => {
+    const tr = document.createElement('tr');
+    if (!highlighted && highlightScore !== null && entry.score === highlightScore) {
+      tr.classList.add('highlight');
+      highlighted = true;
+    }
+    tr.innerHTML = `<td>${i + 1}</td><td>${entry.name}</td><td>${entry.score.toLocaleString()}</td><td>${entry.lines}</td><td>${entry.maxCombo}</td>`;
+    scoresBody.appendChild(tr);
+  });
+}
+
 function endGame() {
   gameOver = true;
   cancelAnimationFrame(animId);
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
+  playerNameInput.classList.remove('hidden');
+  showScoresBtn.classList.remove('hidden');
   overlay.classList.remove('hidden');
 }
 
@@ -263,6 +309,8 @@ function init() {
   level = 1;
   paused = false;
   gameOver = false;
+  comboStreak = 0;
+  maxCombo = 0;
   dropInterval = 1000;
   dropAccum = 0;
   lastTime = performance.now();
@@ -270,6 +318,9 @@ function init() {
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  playerNameInput.classList.add('hidden');
+  showScoresBtn.classList.add('hidden');
+  playerNameInput.value = '';
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -299,6 +350,25 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-restartBtn.addEventListener('click', init);
+restartBtn.addEventListener('click', () => {
+  if (gameOver) {
+    saveScore(playerNameInput.value.trim(), score, lines, maxCombo);
+  }
+  init();
+});
+
+showScoresBtn.addEventListener('click', () => {
+  renderScores(score);
+  scoresOverlay.classList.remove('hidden');
+});
+
+closeScoresBtn.addEventListener('click', () => {
+  scoresOverlay.classList.add('hidden');
+});
+
+resetScoresBtn.addEventListener('click', () => {
+  localStorage.removeItem('tetris-scores');
+  renderScores(null);
+});
 
 init();

@@ -48,7 +48,25 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+        <input id="player-name" class="hidden" type="text" placeholder="Tu nombre" maxlength="16" />
         <button id="restart-btn">Reiniciar</button>
+        <button id="show-scores-btn" class="hidden">Ver Records</button>
+      </div>
+    </div>
+
+    <div id="scores-overlay" class="overlay hidden">
+      <div class="overlay-box scores-box">
+        <div class="overlay-title">RECORDS</div>
+        <table id="scores-table">
+          <thead>
+            <tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Líneas</th><th>Combo</th></tr>
+          </thead>
+          <tbody id="scores-body"></tbody>
+        </table>
+        <div class="scores-actions">
+          <button id="reset-scores-btn">Resetear Records</button>
+          <button id="close-scores-btn">Cerrar</button>
+        </div>
       </div>
     </div>
   </div>
