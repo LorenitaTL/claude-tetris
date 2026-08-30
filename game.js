@@ -4,16 +4,14 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
-  null,
-  '#4dd0e1', // I - cyan
-  '#ffd54f', // O - yellow
-  '#ba68c8', // T - purple
-  '#81c784', // S - green
-  '#e57373', // Z - red
-  '#7986cb', // J - indigo
-  '#ffb74d', // L - orange
-];
+const SKIN_COLORS = {
+  retro:  [null, '#4dd0e1', '#ffd54f', '#ba68c8', '#81c784', '#e57373', '#7986cb', '#ffb74d'],
+  neon:   [null, '#00ffff', '#ffff00', '#ff00ff', '#00ff88', '#ff4466', '#4488ff', '#ff8800'],
+  pastel: [null, '#a8d8ea', '#ffd3b6', '#d4a5d4', '#b8e0b8', '#ffb3b3', '#c5d8f8', '#ffd9a8'],
+  pixel:  [null, '#5bc8e0', '#f0c040', '#a060c8', '#60b060', '#d05050', '#6090e0', '#e09040'],
+};
+let COLORS = SKIN_COLORS.retro;
+let currentSkin = 'retro';
 
 const PIECES = [
   null,
@@ -160,12 +158,53 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
   const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = 'rgba(255,255,255,0.12)';
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+
+  if (currentSkin === 'neon') {
+    context.shadowBlur = 10;
+    context.shadowColor = color;
+    context.fillStyle = color;
+    context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    context.shadowBlur = 0;
+  } else if (currentSkin === 'pastel') {
+    context.fillStyle = color;
+    const rx = x * size + 2, ry = y * size + 2, rw = size - 4, rh = size - 4, r = 5;
+    context.beginPath();
+    context.moveTo(rx + r, ry);
+    context.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+    context.arcTo(rx + rw, ry + rh, rx, ry + rh, r);
+    context.arcTo(rx, ry + rh, rx, ry, r);
+    context.arcTo(rx, ry, rx + rw, ry, r);
+    context.closePath();
+    context.fill();
+  } else if (currentSkin === 'pixel') {
+    context.fillStyle = color;
+    context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    context.fillStyle = 'rgba(0,0,0,0.18)';
+    const ps = (size - 2) / 4;
+    for (let row = 0; row < 4; row++)
+      for (let col = 0; col < 4; col++)
+        if ((row + col) % 2 === 0)
+          context.fillRect(x * size + 1 + col * ps, y * size + 1 + row * ps, ps, ps);
+    context.fillStyle = 'rgba(255,255,255,0.2)';
+    context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  } else {
+    context.fillStyle = color;
+    context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    context.fillStyle = 'rgba(255,255,255,0.12)';
+    context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  }
+
   context.globalAlpha = 1;
+}
+
+function applySkin(name) {
+  currentSkin = name;
+  COLORS = SKIN_COLORS[name] || SKIN_COLORS.retro;
+  document.body.dataset.skin = name;
+  document.querySelectorAll('.skin-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.skin === name);
+  });
+  localStorage.setItem('tetris-skin', name);
 }
 
 function drawGrid() {
@@ -300,5 +339,11 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+
+document.querySelectorAll('.skin-btn').forEach(btn => {
+  btn.addEventListener('click', () => applySkin(btn.dataset.skin));
+});
+
+applySkin(localStorage.getItem('tetris-skin') || 'retro');
 
 init();

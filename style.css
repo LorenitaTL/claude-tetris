@@ -159,3 +159,68 @@ kbd {
 #restart-btn:hover {
   background: #9bbdff;
 }
+
+body[data-skin="neon"] {
+  --bg: #000000;
+  --canvas-bg: #050510;
+  --border: #1a0a3a;
+  --text: #ffffff;
+  --label: #7700ff;
+  --grid-line: #0a0a20;
+  --overlay-bg: rgba(0, 0, 20, 0.85);
+}
+
+body[data-skin="pastel"] {
+  --bg: #f8f0ff;
+  --canvas-bg: #ede0ff;
+  --border: #d4b8f0;
+  --text: #4a3060;
+  --label: #8060a0;
+  --grid-line: #e0d0f8;
+  --overlay-bg: rgba(220, 200, 255, 0.85);
+  --controls-text: #604080;
+  --kbd-bg: #e8d8f8;
+  --kbd-border: #c0a0e0;
+  --kbd-text: #5a3878;
+  --toggle-bg: #e8d8f8;
+  --toggle-border: #c0a0e0;
+  --toggle-text: #5a3878;
+}
+
+body[data-skin="pixel"] {
+  --bg: #1a1a2e;
+  --canvas-bg: #16213e;
+  --border: #0f3460;
+  --text: #e0e0e0;
+  --label: #4a90d9;
+  --grid-line: #1e2d4a;
+  --overlay-bg: rgba(10, 15, 40, 0.85);
+}
+
+#skin-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.skin-btn {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 11px;
+  background: var(--kbd-bg);
+  color: var(--kbd-text);
+  border: 1px solid var(--kbd-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.skin-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.skin-btn.active {
+  background: #7aa2f7;
+  color: #0f0f17;
+  border-color: #7aa2f7;
+}
